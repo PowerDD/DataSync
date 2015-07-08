@@ -9,6 +9,7 @@ using System.IO;
 using System.Data;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
+using System.Threading;
 
 namespace DataSync
 {
@@ -31,11 +32,11 @@ namespace DataSync
             _SQL_CMD.Connection = _SQL_CONN;
             _SQL_CMD.CommandTimeout = 3000;
 
-
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse("DefaultEndpointsProtocol=https;AccountName=" + ConfigurationManager.AppSettings["storageName"] + ";AccountKey=" + ConfigurationManager.AppSettings["storageKey"]);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
-            _CLOUD_TABLE = tableClient.GetTableReference("Barcode4");
+            _CLOUD_TABLE = tableClient.GetTableReference("Barcode5");
             _CLOUD_TABLE.CreateIfNotExists();
+            //_CLOUD_TABLE.DeleteIfExists();
 
             /*Console.WriteLine("Getting Barcode Records");
             DataTable dt = QueryData(@"
@@ -56,42 +57,19 @@ namespace DataSync
             Console.WriteLine("Total Record(s) = {0}\n", count);
             */
 
-
             Console.WriteLine("Getting All Barcode Data for Insert");
-            _DATA_TABLE = QueryData(@"
-		        SELECT sn.SN Barcode,p.AzureID Product,sn.CanUseTime ReceivedDate,s.DocNumber, 
-			        MAX(s.SellNumber) SellNumber,s.BillNumber,s.CustomerNumber,s.DateTime SellDate
-		        FROM NewStock.dbo.Sell s
-			        LEFT JOIN NewStock.dbo.SellSN sn
-			        ON s.SellNumber = sn.SellNumber
-			        AND s.BranchNumber = sn.BranchNumber
-			        LEFT JOIN Product p
-			        ON p.id = sn.PN
-			        LEFT JOIN BarcodeInsert bi
-			        ON bi.Product = p.AzureID
-		        WHERE NOT EXISTS
-			        (
-				        SELECT NULL
-				        FROM BarcodeInsert b
-				        WHERE b.Barcode = LTRIM(RTRIM(sn.SN))
-				        AND b.DocNumber = s.DocNumber
-				        AND b.SellNumber = s.SellNumber
-			        )
-			        AND s.BranchNumber = '1'
-			        AND Status IS NULL
-		        GROUP BY s.BranchNumber,sn.SN ,p.AzureID,sn.CanUseTime, s.DocNumber,s.BillNumber,s.CustomerNumber,s.DateTime
-            ");
-            Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+           _DATA_TABLE = QueryData("sp_InsertBarcode");
+           Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+
+            ExecuteCommand("sp_InsertBarcodeProduct");
 
             int count = _DATA_TABLE.Rows.Count;
-            Parallel.For(0, count/100, i =>
+            Parallel.For(0, count / 100, i =>
             {
                 Barcode b = new Barcode(i);
                 b.Insert();
             });
-
             Console.Read();
-
         }
 
         public static void WriteErrorLog(string message)
@@ -132,12 +110,16 @@ namespace DataSync
             {
                 SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(_SQL_CMD);
                 sqlDataAdapter.Fill(dt);
+                
             }
             catch (Exception ex)
             {
                 WriteErrorLog("SQL = " + command + " : " + ex.Message);
             }
+
             return dt;
         }
+
+
     }
 }
