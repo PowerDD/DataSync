@@ -29,5 +29,6 @@ namespace DataSync
         public string DocNo { get; set; }
         public string OrderNo { get; set; }
         public string Customer { get; set; }
+        public bool CustomerReceived { get; set; }
     }
 }
