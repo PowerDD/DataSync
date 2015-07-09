@@ -72,6 +72,12 @@
   <ItemGroup>
     <Compile Include="Barcode.cs" />
     <Compile Include="BarcodeEntity.cs" />
+    <Compile Include="Category.cs" />
+    <Compile Include="CategoryEntity.cs" />
+    <Compile Include="Customer.cs" />
+    <Compile Include="CustomerEntity.cs" />
+    <Compile Include="Product.cs" />
+    <Compile Include="ProductEntity.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

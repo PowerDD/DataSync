@@ -21,7 +21,7 @@ namespace DataSync
             TableBatchOperation batchOperation = new TableBatchOperation();
             for (int i = id; i < id + 100 && i < Program._DATA_TABLE.Rows.Count; i++)
             {
-                CustomerEntity data = new CustomerEntity("00000001", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim());
+                CustomerEntity data = new CustomerEntity("88888888", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim());
                 data.Member = Program._DATA_TABLE.Rows[i]["Member"].ToString().Trim();
                 data.Name = Program._DATA_TABLE.Rows[i]["Name"].ToString().Trim();
                 data.ShopName = Program._DATA_TABLE.Rows[i]["ShopName"].ToString().Trim();
