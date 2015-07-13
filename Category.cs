@@ -21,7 +21,7 @@ namespace DataSync
             TableBatchOperation batchOperation = new TableBatchOperation();
             for (int i = id; i < id + 100 && i < Program._DATA_TABLE.Rows.Count; i++)
             {
-                CategoryEntity data = new CategoryEntity("88888888", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim());
+                CategoryEntity data = new CategoryEntity("88888888", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim().PadLeft(6, '0'));
                 data.Name = Program._DATA_TABLE.Rows[i]["Name"].ToString();
                 data.Url = Program._DATA_TABLE.Rows[i]["Name"].ToString().ToLower().Replace("/", "-").Replace(" ", "_").Replace("_-_", "-");
                 data.Active = true;

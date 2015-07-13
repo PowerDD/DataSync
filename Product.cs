@@ -21,7 +21,7 @@ namespace DataSync
             TableBatchOperation batchOperation = new TableBatchOperation();
             for (int i = id; i < id + 100 && i < Program._DATA_TABLE.Rows.Count; i++)
             {
-                ProductEntity data = new ProductEntity("88888888", Program._DATA_TABLE.Rows[i]["PN"].ToString().Trim());
+                ProductEntity data = new ProductEntity("88888888", Program._DATA_TABLE.Rows[i]["PN"].ToString().Trim().PadLeft(8, '0'));
                 data.SKU = Program._DATA_TABLE.Rows[i]["ProductCode"].ToString().Trim();
                 data.BuyerCode = Program._DATA_TABLE.Rows[i]["Barcode"].ToString().Trim();
                 data.Name = Program._DATA_TABLE.Rows[i]["Name"].ToString().Trim();
@@ -40,8 +40,8 @@ namespace DataSync
                 data.Height = double.Parse(Program._DATA_TABLE.Rows[i]["Height"].ToString());
                 data.Weight = double.Parse(Program._DATA_TABLE.Rows[i]["Weight"].ToString());
                 data.GrossWeight = double.Parse(Program._DATA_TABLE.Rows[i]["GrossWeight"].ToString());
-                data.Category = Program._DATA_TABLE.Rows[i]["GroupID"].ToString().Trim();
-                data.Brand = Program._DATA_TABLE.Rows[i]["BrandID"].ToString().Trim();
+                data.Category = Program._DATA_TABLE.Rows[i]["GroupID"].ToString().Trim().PadLeft(6, '0');
+                data.Brand = Program._DATA_TABLE.Rows[i]["BrandID"].ToString().Trim().PadLeft(6, '0');
                 data.Warranty = int.Parse(Program._DATA_TABLE.Rows[i]["Warranty"].ToString());
                 data.Location = Program._DATA_TABLE.Rows[i]["Location"].ToString().Trim();
                 data.Active = Program._DATA_TABLE.Rows[i]["Active"].ToString() == "1";
