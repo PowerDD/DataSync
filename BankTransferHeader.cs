@@ -8,13 +8,12 @@ using System.Threading.Tasks;
 
 namespace DataSync
 {
-    class Category
+    class BankTransferHeader
     {
          int id;
-         public static int recCategory = 0;
+         public static int recTransferH = 0;
 
-
-         public Category(int id)
+         public BankTransferHeader(int id)
         {
             this.id = id*100;
         }
@@ -22,23 +21,22 @@ namespace DataSync
         public void Insert()
         {
             TableBatchOperation batchOperation = new TableBatchOperation();
-            Hashtable category = new Hashtable();
+            Hashtable TransferH = new Hashtable();
 
             for (int i = id; i < id + 100 && i < Program._DATA_TABLE.Rows.Count; i++)
             {
-                if (!category.ContainsKey(Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()))
+                if (!TransferH.ContainsKey(Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim()))
                 {
                     try
                     {
-                        CategoryEntity data = new CategoryEntity("88888888", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim().PadLeft(5, '0'));
-                        data.Name = Program._DATA_TABLE.Rows[i]["Name"].ToString();
-                        data.Url = Program._DATA_TABLE.Rows[i]["Name"].ToString().ToLower().Replace("/", "-").Replace(" ", "_").Replace("_-_", "-");
-                        data.Active = true;
-                        data.Priority = 99;
-                        data.ProductCount = int.Parse(Program._DATA_TABLE.Rows[i]["cnt"].ToString());
+                        BankTransferHeaderEntity data = new BankTransferHeaderEntity("88888888", Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim().PadLeft(6, '0'));
+                        data.BankAccount = Program._DATA_TABLE.Rows[i]["BankAccountID"].ToString().Trim();
+                        data.TransferMoney = double.Parse(Program._DATA_TABLE.Rows[i]["TransferMoney"].ToString().ToLower().Trim());
+                        try { data.ReceiveDate = Convert.ToDateTime(Program._DATA_TABLE.Rows[i]["ReceiveDate"].ToString()); }
+                        catch { }
                         batchOperation.InsertOrMerge(data);
-                        recCategory++;
-                        category[Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()] = true;
+                        recTransferH++;
+                        TransferH[Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim()] = true;
                     }
                     catch { }
                 }

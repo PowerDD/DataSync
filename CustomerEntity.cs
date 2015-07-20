@@ -15,6 +15,7 @@ namespace DataSync
             this.RowKey = customerId;
         }
         public string Member { get; set; }
+        public string Shop { get; set; }
         public string Name { get; set; }
         public string ShopName { get; set; }
         public string ContactName { get; set; }

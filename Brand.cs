@@ -8,13 +8,12 @@ using System.Threading.Tasks;
 
 namespace DataSync
 {
-    class Category
+    class Brand
     {
          int id;
-         public static int recCategory = 0;
+         public static int recBrand = 0;
 
-
-         public Category(int id)
+         public Brand(int id)
         {
             this.id = id*100;
         }
@@ -22,23 +21,23 @@ namespace DataSync
         public void Insert()
         {
             TableBatchOperation batchOperation = new TableBatchOperation();
-            Hashtable category = new Hashtable();
+            Hashtable brand = new Hashtable();
 
             for (int i = id; i < id + 100 && i < Program._DATA_TABLE.Rows.Count; i++)
             {
-                if (!category.ContainsKey(Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()))
+                if (!brand.ContainsKey(Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()))
                 {
                     try
                     {
-                        CategoryEntity data = new CategoryEntity("88888888", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim().PadLeft(5, '0'));
-                        data.Name = Program._DATA_TABLE.Rows[i]["Name"].ToString();
-                        data.Url = Program._DATA_TABLE.Rows[i]["Name"].ToString().ToLower().Replace("/", "-").Replace(" ", "_").Replace("_-_", "-");
-                        data.Active = true;
+                        BrandEntity data = new BrandEntity("88888888", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim().PadLeft(5, '0'));
+                        data.Name = Program._DATA_TABLE.Rows[i]["Name"].ToString().Trim();
+                        data.Url = Program._DATA_TABLE.Rows[i]["Name"].ToString().ToLower().Trim();
                         data.Priority = 99;
                         data.ProductCount = int.Parse(Program._DATA_TABLE.Rows[i]["cnt"].ToString());
+                        data.Active = true;
                         batchOperation.InsertOrMerge(data);
-                        recCategory++;
-                        category[Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()] = true;
+                        recBrand++;
+                        brand[Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()] = true;
                     }
                     catch { }
                 }
@@ -66,6 +65,17 @@ namespace DataSync
             }
             
 
+        }
+
+        static string UppercaseFirst(string s)
+        {
+            // Check for empty string.
+            if (string.IsNullOrEmpty(s))
+            {
+                return string.Empty;
+            }
+            // Return char and concat substring.
+            return char.ToUpper(s[0]) + s.Substring(1);
         }
     }
 }

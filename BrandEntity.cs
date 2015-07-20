@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace DataSync
 {
-    class CategoryEntity : TableEntity
+    class BrandEntity : TableEntity
     {
-        public CategoryEntity(string shopId, string categoryId)
+        public BrandEntity(string shopId, string BrandId)
         {
             this.PartitionKey = shopId;
-            this.RowKey = categoryId;
+            this.RowKey = BrandId;
         }
         public string Name { get; set; }
         public string Url { get; set; }

@@ -8,13 +8,12 @@ using System.Threading.Tasks;
 
 namespace DataSync
 {
-    class Category
+    class BankTransferDetail
     {
          int id;
-         public static int recCategory = 0;
+         public static int recTransferD = 0;
 
-
-         public Category(int id)
+         public BankTransferDetail(int id)
         {
             this.id = id*100;
         }
@@ -22,23 +21,21 @@ namespace DataSync
         public void Insert()
         {
             TableBatchOperation batchOperation = new TableBatchOperation();
-            Hashtable category = new Hashtable();
+            Hashtable TransferD = new Hashtable();
 
             for (int i = id; i < id + 100 && i < Program._DATA_TABLE.Rows.Count; i++)
             {
-                if (!category.ContainsKey(Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()))
+                string Rowkey = (Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim() + "-" + Program._DATA_TABLE.Rows[i]["SellNumber"].ToString().Trim());
+                if (!TransferD.ContainsKey(Rowkey))
                 {
                     try
                     {
-                        CategoryEntity data = new CategoryEntity("88888888", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim().PadLeft(5, '0'));
-                        data.Name = Program._DATA_TABLE.Rows[i]["Name"].ToString();
-                        data.Url = Program._DATA_TABLE.Rows[i]["Name"].ToString().ToLower().Replace("/", "-").Replace(" ", "_").Replace("_-_", "-");
-                        data.Active = true;
-                        data.Priority = 99;
-                        data.ProductCount = int.Parse(Program._DATA_TABLE.Rows[i]["cnt"].ToString());
+                        BankTransferDetailEntity data = new BankTransferDetailEntity("88888888", Rowkey);
+                        data.SellNumber = Program._DATA_TABLE.Rows[i]["SellNumber"].ToString().Trim().PadLeft(8, '0');
+                        data.ReceiveMoney = double.Parse(Program._DATA_TABLE.Rows[i]["ReceiveMoney"].ToString().ToLower().Trim());
                         batchOperation.InsertOrMerge(data);
-                        recCategory++;
-                        category[Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()] = true;
+                        recTransferD++;
+                        TransferD[Rowkey] = true;
                     }
                     catch { }
                 }

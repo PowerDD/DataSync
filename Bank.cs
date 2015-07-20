@@ -8,13 +8,12 @@ using System.Threading.Tasks;
 
 namespace DataSync
 {
-    class Category
+    class Bank
     {
          int id;
-         public static int recCategory = 0;
+         public static int recBank = 0;
 
-
-         public Category(int id)
+         public Bank(int id)
         {
             this.id = id*100;
         }
@@ -22,23 +21,23 @@ namespace DataSync
         public void Insert()
         {
             TableBatchOperation batchOperation = new TableBatchOperation();
-            Hashtable category = new Hashtable();
+            Hashtable bank = new Hashtable();
 
             for (int i = id; i < id + 100 && i < Program._DATA_TABLE.Rows.Count; i++)
             {
-                if (!category.ContainsKey(Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()))
+                if (!bank.ContainsKey(Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim()))
                 {
                     try
                     {
-                        CategoryEntity data = new CategoryEntity("88888888", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim().PadLeft(5, '0'));
-                        data.Name = Program._DATA_TABLE.Rows[i]["Name"].ToString();
-                        data.Url = Program._DATA_TABLE.Rows[i]["Name"].ToString().ToLower().Replace("/", "-").Replace(" ", "_").Replace("_-_", "-");
-                        data.Active = true;
-                        data.Priority = 99;
-                        data.ProductCount = int.Parse(Program._DATA_TABLE.Rows[i]["cnt"].ToString());
+                        BankEntity data = new BankEntity("88888888", Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim().PadLeft(6, '0'));
+                        data.Bank = Program._DATA_TABLE.Rows[i]["Bank"].ToString().Trim();
+                        data.BranchName = Program._DATA_TABLE.Rows[i]["BranchName"].ToString().ToLower().Trim();
+                        data.AccountNumber = Program._DATA_TABLE.Rows[i]["AccountNumber"].ToString().Trim();
+                        data.AccountName = Program._DATA_TABLE.Rows[i]["AccountName"].ToString().Trim();
+                        data.AccountType = int.Parse(Program._DATA_TABLE.Rows[i]["AccountType"].ToString().Trim());
                         batchOperation.InsertOrMerge(data);
-                        recCategory++;
-                        category[Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()] = true;
+                        recBank++;
+                        bank[Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim()] = true;
                     }
                     catch { }
                 }

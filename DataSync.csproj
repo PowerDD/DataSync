@@ -70,8 +70,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Bank.cs" />
+    <Compile Include="BankEntity.cs" />
+    <Compile Include="BankTransferDetail.cs" />
+    <Compile Include="BankTransferDetailEntity.cs" />
+    <Compile Include="BankTransferHeader.cs" />
+    <Compile Include="BankTransferHeaderEntity.cs" />
+    <Compile Include="BarcodeStock.cs" />
     <Compile Include="Barcode.cs" />
+    <Compile Include="BarcodeStockEntity.cs" />
     <Compile Include="BarcodeEntity.cs" />
+    <Compile Include="Brand.cs" />
+    <Compile Include="BrandEntity.cs" />
     <Compile Include="Category.cs" />
     <Compile Include="CategoryEntity.cs" />
     <Compile Include="Customer.cs" />
@@ -80,11 +90,17 @@
     <Compile Include="ProductEntity.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SellDetail.cs" />
+    <Compile Include="SellDetailEntity.cs" />
+    <Compile Include="SellHeader.cs" />
+    <Compile Include="SellHeaderEntity.cs" />
     <Compile Include="ShopBarcode.cs" />
     <Compile Include="ShopBarcodeEntity.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

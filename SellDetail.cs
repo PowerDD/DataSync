@@ -8,13 +8,12 @@ using System.Threading.Tasks;
 
 namespace DataSync
 {
-    class Category
+    class SellDetail
     {
-         int id;
-         public static int recCategory = 0;
+        int id;
+        public static int recSellD = 0;
 
-
-         public Category(int id)
+         public SellDetail(int id)
         {
             this.id = id*100;
         }
@@ -22,23 +21,22 @@ namespace DataSync
         public void Insert()
         {
             TableBatchOperation batchOperation = new TableBatchOperation();
-            Hashtable category = new Hashtable();
+            Hashtable sellD = new Hashtable();
 
             for (int i = id; i < id + 100 && i < Program._DATA_TABLE.Rows.Count; i++)
             {
-                if (!category.ContainsKey(Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()))
+                string Rowkey = (Program._DATA_TABLE.Rows[i]["SellNo"].ToString().Trim() + "-" + Program._DATA_TABLE.Rows[i]["Product"].ToString().Trim());
+                if (!sellD.ContainsKey(Rowkey))
                 {
                     try
                     {
-                        CategoryEntity data = new CategoryEntity("88888888", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim().PadLeft(5, '0'));
-                        data.Name = Program._DATA_TABLE.Rows[i]["Name"].ToString();
-                        data.Url = Program._DATA_TABLE.Rows[i]["Name"].ToString().ToLower().Replace("/", "-").Replace(" ", "_").Replace("_-_", "-");
-                        data.Active = true;
-                        data.Priority = 99;
-                        data.ProductCount = int.Parse(Program._DATA_TABLE.Rows[i]["cnt"].ToString());
+                        SellDetailEntity data = new SellDetailEntity("88888888", Rowkey);
+                        data.Product = Program._DATA_TABLE.Rows[i]["Product"].ToString().Trim().PadLeft(8, '0');
+                        data.SellPrice = Program._DATA_TABLE.Rows[i]["SellPrice"].ToString().Trim();
+                        data.Quantity = Program._DATA_TABLE.Rows[i]["Quantity"].ToString().Trim();
                         batchOperation.InsertOrMerge(data);
-                        recCategory++;
-                        category[Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()] = true;
+                        recSellD++;
+                        sellD[Rowkey] = true;
                     }
                     catch { }
                 }
