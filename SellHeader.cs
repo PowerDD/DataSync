@@ -25,7 +25,7 @@ namespace DataSync
 
             for (int i = id; i < id + 100 && i < Program._DATA_TABLE.Rows.Count; i++)
             {
-                if (!sellH.ContainsKey(Program._DATA_TABLE.Rows[i]["SellNo"].ToString().Trim()))
+                if (!sellH.ContainsKey(Program._DATA_TABLE.Rows[i]["SellNo"].ToString().Trim().PadLeft(8, '0')))
                 {
                     try
                     {
@@ -56,17 +56,20 @@ namespace DataSync
 
             try
             {
-                if (Program._UPDATE)
+                if (Program._DATA_TABLE.Rows.Count > 0)
                 {
-                    Program._RECORD++;
-                    Console.WriteLine("Update Record {0}-{1}\t\tTotal {2} Records", id + 1, id + 100, Program._RECORD * 100);
-                    Program._CLOUD_TABLE.ExecuteBatch(batchOperation);
-                }
-                else
-                {
-                    Program._RECORD++;
-                    Console.WriteLine("Insert Record {0}-{1}\t\tTotal {2} Records", id + 1, id + 100, Program._RECORD * 100);
-                    Program._CLOUD_TABLE.ExecuteBatch(batchOperation);
+                    if (Program._UPDATE)
+                    {
+                        Program._RECORD++;
+                        Console.WriteLine("Update Record {0}-{1}\t\tTotal {2} Records", id + 1, id + 100, Program._RECORD * 100);
+                        Program._CLOUD_TABLE.ExecuteBatch(batchOperation);
+                    }
+                    else
+                    {
+                        Program._RECORD++;
+                        Console.WriteLine("Insert Record {0}-{1}\t\tTotal {2} Records", id + 1, id + 100, Program._RECORD * 100);
+                        Program._CLOUD_TABLE.ExecuteBatch(batchOperation);
+                    }
                 }
 
             }

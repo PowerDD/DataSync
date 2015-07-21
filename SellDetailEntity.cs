@@ -14,8 +14,7 @@ namespace DataSync
             this.PartitionKey = shopId;
             this.RowKey = SellDId;
         }
-        public string Product { get; set; }
-        public string SellPrice { get; set; }
-        public string Quantity { get; set; }
+        public double SellPrice { get; set; }
+        public double Quantity { get; set; }
     }
 }

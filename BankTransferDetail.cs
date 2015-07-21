@@ -43,17 +43,20 @@ namespace DataSync
 
             try
             {
-                if (Program._UPDATE)
+                if (Program._DATA_TABLE.Rows.Count > 0)
                 {
-                    Program._RECORD++;
-                    Console.WriteLine("Update Record {0}-{1}\t\tTotal {2} Records", id + 1, id + 100, Program._RECORD * 100);
-                    Program._CLOUD_TABLE.ExecuteBatch(batchOperation);
-                }
-                else
-                {
-                    Program._RECORD++;
-                    Console.WriteLine("Insert Record {0}-{1}\t\tTotal {2} Records", id + 1, id + 100, Program._RECORD * 100);
-                    Program._CLOUD_TABLE.ExecuteBatch(batchOperation);
+                    if (Program._UPDATE)
+                    {
+                        Program._RECORD++;
+                        Console.WriteLine("Update Record {0}-{1}\t\tTotal {2} Records", id + 1, id + 100, Program._RECORD * 100);
+                        Program._CLOUD_TABLE.ExecuteBatch(batchOperation);
+                    }
+                    else
+                    {
+                        Program._RECORD++;
+                        Console.WriteLine("Insert Record {0}-{1}\t\tTotal {2} Records", id + 1, id + 100, Program._RECORD * 100);
+                        Program._CLOUD_TABLE.ExecuteBatch(batchOperation);
+                    }
                 }
 
             }

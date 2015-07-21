@@ -34,5 +34,6 @@ namespace DataSync
         public int SellPrice { get; set; }
         public string Comment { get; set; }
         public DateTime AddDate { get; set; }
+        public bool Active { get; set; }
     }
 }
