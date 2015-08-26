@@ -30,9 +30,17 @@ namespace DataSync
                 {
                     try
                     {
-                        BankTransferDetailEntity data = new BankTransferDetailEntity("88888888", Rowkey);
-                        data.SellNumber = Program._DATA_TABLE.Rows[i]["SellNumber"].ToString().Trim().PadLeft(8, '0');
-                        data.ReceiveMoney = double.Parse(Program._DATA_TABLE.Rows[i]["ReceiveMoney"].ToString().ToLower().Trim());
+                        DynamicTableEntity data = new DynamicTableEntity();
+                        data.PartitionKey = "88888888";
+                        data.RowKey = Rowkey;
+                        Dictionary<string, EntityProperty> properties = new Dictionary<string, EntityProperty>();
+
+                        properties.Add("SellNumber", new EntityProperty(Program._DATA_TABLE.Rows[i]["SellNumber"].ToString().Trim().PadLeft(8, '0')));
+                        properties.Add("ReceiveMoney", new EntityProperty(double.Parse(Program._DATA_TABLE.Rows[i]["ReceiveMoney"].ToString().ToLower().Trim())));
+
+                        //BankTransferDetailEntity data = new BankTransferDetailEntity("88888888", Rowkey);
+                        //data.SellNumber = Program._DATA_TABLE.Rows[i]["SellNumber"].ToString().Trim().PadLeft(8, '0');
+                        //data.ReceiveMoney = double.Parse(Program._DATA_TABLE.Rows[i]["ReceiveMoney"].ToString().ToLower().Trim());
                         batchOperation.InsertOrMerge(data);
                         recTransferD++;
                         TransferD[Rowkey] = true;

@@ -29,12 +29,31 @@ namespace DataSync
                 {
                     try
                     {
-                        BrandEntity data = new BrandEntity("88888888", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim().PadLeft(5, '0'));
-                        data.Name = Program._DATA_TABLE.Rows[i]["Name"].ToString().Trim();
-                        data.Url = Program._DATA_TABLE.Rows[i]["Name"].ToString().ToLower().Trim();
-                        data.Priority = 99;
-                        data.ProductCount = int.Parse(Program._DATA_TABLE.Rows[i]["cnt"].ToString());
-                        data.Active = true;
+                        DynamicTableEntity data = new DynamicTableEntity();
+                        data.PartitionKey = "88888888";
+                        data.RowKey = Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim().PadLeft(5, '0');
+                        Dictionary<string, EntityProperty> properties = new Dictionary<string, EntityProperty>();
+
+                        properties.Add("Name", new EntityProperty(Program._DATA_TABLE.Rows[i]["Name"].ToString()));
+                        properties.Add("Url", new EntityProperty(Program._DATA_TABLE.Rows[i]["Name"].ToString().ToLower().Trim()));
+                        properties.Add("Active", new EntityProperty(true));
+                        properties.Add("Priority", new EntityProperty(99));
+
+                        if (Program._DATA_TABLE.Rows[i]["cnt"] == null)
+                        {
+                            properties.Add("ProductCount", new EntityProperty(0));
+                        }
+                        else
+                        {
+                            properties.Add("ProductCount", new EntityProperty(int.Parse(Program._DATA_TABLE.Rows[i]["cnt"].ToString())));
+                        }
+
+                        //BrandEntity data = new BrandEntity("88888888", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim().PadLeft(5, '0'));
+                        //data.Name = Program._DATA_TABLE.Rows[i]["Name"].ToString().Trim();
+                        //data.Url = Program._DATA_TABLE.Rows[i]["Name"].ToString().ToLower().Trim();
+                        //data.Priority = 99;
+                        //data.ProductCount = int.Parse(Program._DATA_TABLE.Rows[i]["cnt"].ToString());
+                        //data.Active = true;
                         batchOperation.InsertOrMerge(data);
                         recBrand++;
                         brand[Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()] = true;

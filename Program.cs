@@ -22,6 +22,7 @@ namespace DataSync
         public static CloudTable _CLOUD_TABLE;
         public static int _RECORD;
         public static int _COUNT;
+        public static int _COUNT_BARCODE = 0;
         public static bool _UPDATE = false;
         public static string database_server = ConfigurationManager.AppSettings["dbHost"];
         public static string database_name = ConfigurationManager.AppSettings["dbName"];
@@ -31,7 +32,8 @@ namespace DataSync
         public static string End_Hour = ConfigurationManager.AppSettings["EndHours"];
         public static string _SHOP;
         public static string _CUS_NO;
-
+        public static string _BRANCH_NO;
+        
 
         static void Main(string[] args)
         {
@@ -57,7 +59,6 @@ namespace DataSync
             int count = int.Parse(dt.Rows[0]["cnt"].ToString());
             Console.WriteLine("Total Record(s) = {0}\n", count);
             */
-
             //DataSyn();
             while (true)
             {
@@ -93,6 +94,16 @@ namespace DataSync
                     _SQL_CMD.Parameters.AddWithValue("@customer", _CUS_NO);
                     _SQL_CMD.ExecuteNonQuery();
                 }
+                else if (command == "sp_BarcodeInsert")
+                {
+                    _SQL_CMD.Parameters.Clear();
+                    _SQL_CMD.CommandText = command;
+                    _SQL_CMD.CommandType = CommandType.StoredProcedure;
+
+                    _SQL_CMD.Parameters.AddWithValue("@shop", _SHOP);
+                    _SQL_CMD.Parameters.AddWithValue("@branchNumber", _BRANCH_NO);
+                    _SQL_CMD.ExecuteNonQuery();
+                }
                 else if (command == "sp_BarcodeStockDataUpdate")
                 {
                     _SQL_CMD.Parameters.Clear();
@@ -120,6 +131,8 @@ namespace DataSync
             {
                 _SQL_CONN.Open();
             }
+            _SQL_CMD.CommandType = CommandType.Text;
+
             if (command == "sp_BarcodeStock")
             {
                 _SQL_CMD.Parameters.Clear();
@@ -127,6 +140,15 @@ namespace DataSync
                 _SQL_CMD.CommandType = CommandType.StoredProcedure;
                 _SQL_CMD.Parameters.AddWithValue("@shop", _SHOP);
                 _SQL_CMD.Parameters.AddWithValue("@customerNumber", _CUS_NO);
+                _SQL_CMD.ExecuteNonQuery();
+            }
+            else if (command == "sp_Barcode")
+            {
+                _SQL_CMD.Parameters.Clear();
+                _SQL_CMD.CommandText = command;
+                _SQL_CMD.CommandType = CommandType.StoredProcedure;
+                _SQL_CMD.Parameters.AddWithValue("@shop", _SHOP);
+                _SQL_CMD.Parameters.AddWithValue("@branchNumber", _BRANCH_NO);
                 _SQL_CMD.ExecuteNonQuery();
             }
             else if (command == "sp_BarcodeStockData")
@@ -161,443 +183,456 @@ namespace DataSync
             DateTime dt1 = Convert.ToDateTime(DateTime.Now.ToString("dd/MM/yyyy ") + Start_Hour);
             DateTime dt2 = Convert.ToDateTime(DateTime.Now.ToString("dd/MM/yyyy ") + End_Hour);
 
-            if ((DateTime.Now > dt1) && (DateTime.Now < dt2) && (DateTime.Now.DayOfWeek.ToString() != DayOfWeek.Sunday.ToString()))
+            if ((DateTime.Now > dt1) && (DateTime.Now < dt2))
             {
                 CloudStorageAccount storageAccount = CloudStorageAccount.Parse("DefaultEndpointsProtocol=https;AccountName=" + ConfigurationManager.AppSettings["storageName"] + ";AccountKey=" + ConfigurationManager.AppSettings["storageKey"]);
                 CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
 
 
-                //// Sync Brand
-                //_CLOUD_TABLE = tableClient.GetTableReference("Brand");
-                //_CLOUD_TABLE.CreateIfNotExists();
+                // Sync Brand
+                _CLOUD_TABLE = tableClient.GetTableReference("Brand");
+                _CLOUD_TABLE.CreateIfNotExists();
 
-                //Console.WriteLine("Getting All Brand Data for Insert");
-                //_DATA_TABLE = QueryData("sp_Brand");
-                //_RECORD = 0;
+                Console.WriteLine("Getting All Brand Data for Insert");
+                _DATA_TABLE = QueryData("sp_Brand");
+                _RECORD = 0;
 
-                //if (_DATA_TABLE.Rows.Count > 0)
-                //{
-                //    _UPDATE = false;
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+                if (_DATA_TABLE.Rows.Count > 0)
+                {
+                    _UPDATE = false;
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
 
-                //    ExecuteCommand("sp_BrandInsert");
-                //    Brand.recBrand = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        Brand b = new Brand(i);
-                //        b.Insert();
-                //    });
+                    ExecuteCommand("sp_BrandInsert");
+                    Brand.recBrand = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        Brand b = new Brand(i);
+                        b.Insert();
+                    });
 
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Insert successed total Record(s) = {0}\n", Brand.recBrand);
-                //    }
-                //}
-                //else
-                //{
-                //    _UPDATE = true;
-                //    _DATA_TABLE = QueryData("sp_BrandData");
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Insert successed total Record(s) = {0}\n", Brand.recBrand);
+                    }
+                }
+                else
+                {
+                    _UPDATE = true;
+                    _DATA_TABLE = QueryData("sp_BrandData");
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
 
-                //    ExecuteCommand("sp_BrandDataUpdate");
-                //    Brand.recBrand = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        Brand b = new Brand(i);
-                //        b.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Update successed total Record(s) = {0}\n", Brand.recBrand);
-                //    }
+                    ExecuteCommand("sp_BrandDataUpdate");
+                    Brand.recBrand = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        Brand b = new Brand(i);
+                        b.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Update successed total Record(s) = {0}\n", Brand.recBrand);
+                    }
 
-                //}
-
-
-
-                //// Sync Category
-                //_CLOUD_TABLE = tableClient.GetTableReference("Category");
-                //_CLOUD_TABLE.CreateIfNotExists();
-
-                //Console.WriteLine("Getting All Category Data for Insert");
-                //_DATA_TABLE = QueryData("sp_Category");
-                //_RECORD = 0;
-
-                //if (_DATA_TABLE.Rows.Count > 0)
-                //{
-                //    _UPDATE = false;
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
-
-                //    ExecuteCommand("sp_CategoryInsert");
-                //    Category.recCategory = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        Category c = new Category(i);
-                //        c.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Insert successed total Record(s) = {0}\n", Category.recCategory);
-                //    }
-                //}
-                //else
-                //{
-                //    _UPDATE = true;
-                //    _DATA_TABLE = QueryData("sp_CategoryData");
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
-
-                //    ExecuteCommand("sp_CategoryDataUpdate");
-                //    Category.recCategory = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        Category c = new Category(i);
-                //        c.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Update successed total Record(s) = {0}\n", Category.recCategory);
-                //    }
-                //}
-
-
-                //// Sync Product
-                //_CLOUD_TABLE = tableClient.GetTableReference("Product");
-                //_CLOUD_TABLE.CreateIfNotExists();
-
-                //Console.WriteLine("Getting All Product Data for Insert");
-                //_DATA_TABLE = QueryData("sp_Product");
-                //_RECORD = 0;
-
-                //if (_DATA_TABLE.Rows.Count > 0)
-                //{
-                //    _UPDATE = false;
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
-
-                //    ExecuteCommand("sp_ProductInsert");
-                //    Product.recProduct = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        Product p = new Product(i);
-                //        p.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Insert successed total Record(s) = {0}\n", Product.recProduct);
-                //    }
-
-                //}
-                //else
-                //{
-                //    _UPDATE = true;
-                //    _DATA_TABLE = QueryData("sp_ProductData");
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
-
-                //    ExecuteCommand("sp_ProductDataUpdate");
-                //    Product.recProduct = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        Product p = new Product(i);
-                //        p.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Update successed total Record(s) = {0}\n", Product.recProduct);
-                //    }
-
-                //}
+                }
 
 
 
-                //// Sync SellHeader
-                //_CLOUD_TABLE = tableClient.GetTableReference("SellHeader");
-                //_CLOUD_TABLE.CreateIfNotExists();
+                // Sync Category
+                _CLOUD_TABLE = tableClient.GetTableReference("Category");
+                _CLOUD_TABLE.CreateIfNotExists();
 
-                //Console.WriteLine("Getting All SellHeader Data for Insert");
-                //_DATA_TABLE = QueryData("sp_SellHeader");
-                //_RECORD = 0;
+                Console.WriteLine("Getting All Category Data for Insert");
+                _DATA_TABLE = QueryData("sp_Category");
+                _RECORD = 0;
 
-                //if (_DATA_TABLE.Rows.Count > 0)
-                //{
-                //    _UPDATE = false;
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+                if (_DATA_TABLE.Rows.Count > 0)
+                {
+                    _UPDATE = false;
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
 
-                //    ExecuteCommand("sp_SellHeaderInsert");
-                //    SellHeader.recSellH = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        SellHeader b = new SellHeader(i);
-                //        b.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Insert successed total Record(s) = {0}\n", SellHeader.recSellH);
-                //    }
-                //}
-                //else
-                //{
-                //    _UPDATE = true;
-                //    _DATA_TABLE = QueryData("sp_SellHeaderData");
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+                    ExecuteCommand("sp_CategoryInsert");
+                    Category.recCategory = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        Category c = new Category(i);
+                        c.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Insert successed total Record(s) = {0}\n", Category.recCategory);
+                    }
+                }
+                else
+                {
+                    _UPDATE = true;
+                    _DATA_TABLE = QueryData("sp_CategoryData");
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
 
-                //    ExecuteCommand("sp_SellHeaderDataUpdate");
-                //    SellHeader.recSellH = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        SellHeader b = new SellHeader(i);
-                //        b.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Update successed total Record(s) = {0}\n", SellHeader.recSellH);
-                //    }
-                //}
-
-
-                //// Sync SellDetail
-                //_CLOUD_TABLE = tableClient.GetTableReference("SellDetail");
-                //_CLOUD_TABLE.CreateIfNotExists();
-
-                //Console.WriteLine("Getting All SellDetail Data for Insert");
-                //_DATA_TABLE = QueryData("sp_SellDetail");
-                //_RECORD = 0;
-
-                //if (_DATA_TABLE.Rows.Count > 0)
-                //{
-                //    _UPDATE = false;
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
-
-                //    ExecuteCommand("sp_SellDetailInsert");
-                //    SellDetail.recSellD = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        SellDetail b = new SellDetail(i);
-                //        b.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Insert successed total Record(s) = {0}\n", SellDetail.recSellD);
-                //    }
-                //}
-                //else
-                //{
-                //    _UPDATE = true;
-                //    _DATA_TABLE = QueryData("sp_SellDetailData");
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
-
-                //    ExecuteCommand("sp_SellDetailDataUpdate");
-                //    SellDetail.recSellD = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        SellDetail b = new SellDetail(i);
-                //        b.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Update successed total Record(s) = {0}\n", SellDetail.recSellD);
-                //    }
-                //}
+                    ExecuteCommand("sp_CategoryDataUpdate");
+                    Category.recCategory = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        Category c = new Category(i);
+                        c.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Update successed total Record(s) = {0}\n", Category.recCategory);
+                    }
+                }
 
 
-                //// Sync Bank
-                //_CLOUD_TABLE = tableClient.GetTableReference("Bank");
-                //_CLOUD_TABLE.CreateIfNotExists();
+                //Sync Product
+                _CLOUD_TABLE = tableClient.GetTableReference("Product10");
+                _CLOUD_TABLE.CreateIfNotExists();
 
-                //Console.WriteLine("Getting All Bank Data for Insert");
-                //_DATA_TABLE = QueryData("sp_Bank");
-                //_RECORD = 0;
+                Console.WriteLine("Getting All Product Data for Insert");
+                _DATA_TABLE = QueryData("sp_Product");
+                _RECORD = 0;
 
-                //if (_DATA_TABLE.Rows.Count > 0)
-                //{
-                //    _UPDATE = false;
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+                if (_DATA_TABLE.Rows.Count > 0)
+                {
+                    _UPDATE = false;
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
 
-                //    ExecuteCommand("sp_BankInsert");
-                //    Bank.recBank = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        Bank b = new Bank(i);
-                //        b.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Insert successed total Record(s) = {0}\n", Bank.recBank);
-                //    }
-                //}
-                //else
-                //{
-                //    _UPDATE = true;
-                //    _DATA_TABLE = QueryData("sp_BankData");
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+                    ExecuteCommand("sp_ProductInsert");
+                    Product.recProduct = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        Product p = new Product(i);
+                        p.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Insert successed total Record(s) = {0}\n", Product.recProduct);
+                    }
 
-                //    ExecuteCommand("sp_BankDataUpdate");
-                //    Bank.recBank = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        Bank b = new Bank(i);
-                //        b.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Update successed total Record(s) = {0}\n", Bank.recBank);
-                //    }
-                //}
+                }
+                else
+                {
+                    _UPDATE = true;
+                    _DATA_TABLE = QueryData("sp_ProductData");
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
 
+                    ExecuteCommand("sp_ProductDataUpdate");
+                    Product.recProduct = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        Product p = new Product(i);
+                        p.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Update successed total Record(s) = {0}\n", Product.recProduct);
+                    }
 
-                //// Sync BankTransferHeader
-                //_CLOUD_TABLE = tableClient.GetTableReference("BankTransferHeader");
-                //_CLOUD_TABLE.CreateIfNotExists();
-
-                //Console.WriteLine("Getting All BankTransferHeader Data for Insert");
-                //_DATA_TABLE = QueryData("sp_BankTransferHeader");
-                //_RECORD = 0;
-
-                //if (_DATA_TABLE.Rows.Count > 0)
-                //{
-                //    _UPDATE = false;
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
-
-                //    ExecuteCommand("sp_BankTransferHeaderInsert");
-                //    BankTransferHeader.recTransferH = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        BankTransferHeader b = new BankTransferHeader(i);
-                //        b.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Insert successed total Record(s) = {0}\n", BankTransferHeader.recTransferH);
-                //    }
-                //}
-                //else
-                //{
-                //    _UPDATE = true;
-                //    _DATA_TABLE = QueryData("sp_BankTransferHeaderData");
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
-
-                //    ExecuteCommand("sp_BankTransferHeaderDataUpdate");
-                //    BankTransferHeader.recTransferH = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        BankTransferHeader b = new BankTransferHeader(i);
-                //        b.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Update successed total Record(s) = {0}\n", BankTransferHeader.recTransferH);
-                //    }
-
-                //}
-
-
-                //// Sync BankTransferDetail
-                //_CLOUD_TABLE = tableClient.GetTableReference("BankTransferDetail");
-                //_CLOUD_TABLE.CreateIfNotExists();
-
-                //Console.WriteLine("Getting All BankTransferDetail Data for Insert");
-                //_DATA_TABLE = QueryData("sp_BankTransferDetail");
-                //_RECORD = 0;
-
-                //if (_DATA_TABLE.Rows.Count > 0)
-                //{
-                //    _UPDATE = false;
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
-
-                //    ExecuteCommand("sp_BankTransferDetailInsert");
-                //    BankTransferDetail.recTransferD = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        BankTransferDetail b = new BankTransferDetail(i);
-                //        b.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Insert successed total Record(s) = {0}\n", BankTransferDetail.recTransferD);
-                //    }
-                //}
-                //else
-                //{
-                //    _UPDATE = true;
-                //    _DATA_TABLE = QueryData("sp_BankTransferDetailData");
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
-
-                //    ExecuteCommand("sp_BankTransferDetailDataUpdate");
-                //    BankTransferDetail.recTransferD = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        BankTransferDetail b = new BankTransferDetail(i);
-                //        b.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Update successed total Record(s) = {0}\n", BankTransferDetail.recTransferD);
-                //    }
-
-                //}
+                }
 
 
 
-                //// Sync Barcode
-                //_CLOUD_TABLE = tableClient.GetTableReference("Barcode");
-                //_CLOUD_TABLE.CreateIfNotExists();
+                // Sync SellHeader
+                _CLOUD_TABLE = tableClient.GetTableReference("SellHeader");
+                _CLOUD_TABLE.CreateIfNotExists();
 
-                //Console.WriteLine("Getting All Barcode Data for Insert");
-                //_DATA_TABLE = QueryData("sp_Barcode");
-                //_RECORD = 0;
+                Console.WriteLine("Getting All SellHeader Data for Insert");
+                _DATA_TABLE = QueryData("sp_SellHeader");
+                _RECORD = 0;
 
-                //if (_DATA_TABLE.Rows.Count > 0)
-                //{
-                //    _UPDATE = false;
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+                if (_DATA_TABLE.Rows.Count > 0)
+                {
+                    _UPDATE = false;
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
 
-                //    ExecuteCommand("sp_BarcodeInsert");
-                //    Barcode.recBarcode = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        Barcode b = new Barcode(i);
-                //        b.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Insert successed total Record(s) = {0}\n", Barcode.recBarcode);
-                //    }
-                //}
-                //else
-                //{
-                //    _UPDATE = true;
-                //    _DATA_TABLE = QueryData("sp_BarcodeData");
-                //    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+                    ExecuteCommand("sp_SellHeaderInsert");
+                    SellHeader.recSellH = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        SellHeader b = new SellHeader(i);
+                        b.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Insert successed total Record(s) = {0}\n", SellHeader.recSellH);
+                    }
+                }
+                else
+                {
+                    _UPDATE = true;
+                    _DATA_TABLE = QueryData("sp_SellHeaderData");
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
 
-                //    ExecuteCommand("sp_BarcodeDataUpdate");
-                //    Barcode.recBarcode = 0;
-                //    _COUNT = _DATA_TABLE.Rows.Count;
-                //    Parallel.For(0, _COUNT / 100 + 1, i =>
-                //    {
-                //        Barcode b = new Barcode(i);
-                //        b.Insert();
-                //    });
-                //    if (_DATA_TABLE.Rows.Count > 0)
-                //    {
-                //        Console.WriteLine("Update successed total Record(s) = {0}\n", Barcode.recBarcode);
-                //    }
+                    ExecuteCommand("sp_SellHeaderDataUpdate");
+                    SellHeader.recSellH = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        SellHeader b = new SellHeader(i);
+                        b.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Update successed total Record(s) = {0}\n", SellHeader.recSellH);
+                    }
+                }
 
-                //}
+
+                // Sync SellDetail
+                _CLOUD_TABLE = tableClient.GetTableReference("SellDetail");
+                _CLOUD_TABLE.CreateIfNotExists();
+
+                Console.WriteLine("Getting All SellDetail Data for Insert");
+                _DATA_TABLE = QueryData("sp_SellDetail");
+                _RECORD = 0;
+
+                if (_DATA_TABLE.Rows.Count > 0)
+                {
+                    _UPDATE = false;
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+
+                    ExecuteCommand("sp_SellDetailInsert");
+                    SellDetail.recSellD = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        SellDetail b = new SellDetail(i);
+                        b.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Insert successed total Record(s) = {0}\n", SellDetail.recSellD);
+                    }
+                }
+                else
+                {
+                    _UPDATE = true;
+                    _DATA_TABLE = QueryData("sp_SellDetailData");
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+
+                    ExecuteCommand("sp_SellDetailDataUpdate");
+                    SellDetail.recSellD = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        SellDetail b = new SellDetail(i);
+                        b.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Update successed total Record(s) = {0}\n", SellDetail.recSellD);
+                    }
+                }
+
+
+                // Sync Bank
+                _CLOUD_TABLE = tableClient.GetTableReference("Bank");
+                _CLOUD_TABLE.CreateIfNotExists();
+
+                Console.WriteLine("Getting All Bank Data for Insert");
+                _DATA_TABLE = QueryData("sp_Bank");
+                _RECORD = 0;
+
+                if (_DATA_TABLE.Rows.Count > 0)
+                {
+                    _UPDATE = false;
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+
+                    ExecuteCommand("sp_BankInsert");
+                    Bank.recBank = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        Bank b = new Bank(i);
+                        b.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Insert successed total Record(s) = {0}\n", Bank.recBank);
+                    }
+                }
+                else
+                {
+                    _UPDATE = true;
+                    _DATA_TABLE = QueryData("sp_BankData");
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+
+                    ExecuteCommand("sp_BankDataUpdate");
+                    Bank.recBank = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        Bank b = new Bank(i);
+                        b.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Update successed total Record(s) = {0}\n", Bank.recBank);
+                    }
+                }
+
+
+                // Sync BankTransferHeader
+                _CLOUD_TABLE = tableClient.GetTableReference("BankTransferHeader");
+                _CLOUD_TABLE.CreateIfNotExists();
+
+                Console.WriteLine("Getting All BankTransferHeader Data for Insert");
+                _DATA_TABLE = QueryData("sp_BankTransferHeader");
+                _RECORD = 0;
+
+                if (_DATA_TABLE.Rows.Count > 0)
+                {
+                    _UPDATE = false;
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+
+                    ExecuteCommand("sp_BankTransferHeaderInsert");
+                    BankTransferHeader.recTransferH = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        BankTransferHeader b = new BankTransferHeader(i);
+                        b.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Insert successed total Record(s) = {0}\n", BankTransferHeader.recTransferH);
+                    }
+                }
+                else
+                {
+                    _UPDATE = true;
+                    _DATA_TABLE = QueryData("sp_BankTransferHeaderData");
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+
+                    ExecuteCommand("sp_BankTransferHeaderDataUpdate");
+                    BankTransferHeader.recTransferH = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        BankTransferHeader b = new BankTransferHeader(i);
+                        b.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Update successed total Record(s) = {0}\n", BankTransferHeader.recTransferH);
+                    }
+
+                }
+
+
+                // Sync BankTransferDetail
+                _CLOUD_TABLE = tableClient.GetTableReference("BankTransferDetail");
+                _CLOUD_TABLE.CreateIfNotExists();
+
+                Console.WriteLine("Getting All BankTransferDetail Data for Insert");
+                _DATA_TABLE = QueryData("sp_BankTransferDetail");
+                _RECORD = 0;
+
+                if (_DATA_TABLE.Rows.Count > 0)
+                {
+                    _UPDATE = false;
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+
+                    ExecuteCommand("sp_BankTransferDetailInsert");
+                    BankTransferDetail.recTransferD = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        BankTransferDetail b = new BankTransferDetail(i);
+                        b.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Insert successed total Record(s) = {0}\n", BankTransferDetail.recTransferD);
+                    }
+                }
+                else
+                {
+                    _UPDATE = true;
+                    _DATA_TABLE = QueryData("sp_BankTransferDetailData");
+                    Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+
+                    ExecuteCommand("sp_BankTransferDetailDataUpdate");
+                    BankTransferDetail.recTransferD = 0;
+                    _COUNT = _DATA_TABLE.Rows.Count;
+                    Parallel.For(0, _COUNT / 100 + 1, i =>
+                    {
+                        BankTransferDetail b = new BankTransferDetail(i);
+                        b.Insert();
+                    });
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+                        Console.WriteLine("Update successed total Record(s) = {0}\n", BankTransferDetail.recTransferD);
+                    }
+
+                }
+
+
+
+                // Sync Barcode
+                _DATATABLE = QueryData("SELECT * FROM Shop WHERE ShopId IN ('88888888','00000001')");
+                for (int r = 0; r < _DATATABLE.Rows.Count; r++)
+                {
+                    _SHOP = _DATATABLE.Rows[r]["ShopId"].ToString();
+                    _BRANCH_NO = _DATATABLE.Rows[r]["BranchNumber"].ToString();
+
+                    _CLOUD_TABLE = tableClient.GetTableReference("Barcode7");
+                    _CLOUD_TABLE.CreateIfNotExists();
+
+                    Console.WriteLine("Getting All Barcode(Shop " + _SHOP + ") Data for Insert");
+                    _DATA_TABLE = QueryData("sp_Barcode");
+                    _RECORD = 0;
+
+                    if (_DATA_TABLE.Rows.Count > 0)
+                    {
+
+                        while (_DATA_TABLE.Rows.Count > 0)
+                        {
+                            _UPDATE = false;
+                            Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+
+                            Barcode.recBarcode = 0;
+                            _COUNT = _DATA_TABLE.Rows.Count;
+                            Parallel.For(0, _COUNT / 100, i =>
+                            {
+                                Barcode b = new Barcode(i);
+                                b.Insert();
+                            });
+                            ExecuteCommand("sp_BarcodeInsert");
+                            if (_DATA_TABLE.Rows.Count > 0)
+                            {
+                                Console.WriteLine("Insert successed total Record(s) = {0}\n", Barcode.recBarcode);
+                            }
+                            _DATA_TABLE = QueryData("sp_Barcode");
+
+                        }
+                    }
+                    else
+                    {
+                        _UPDATE = true;
+                        _DATA_TABLE = QueryData("sp_BarcodeData");
+                        Console.WriteLine("Total Record(s) = {0}\n", _DATA_TABLE.Rows.Count);
+
+                        ExecuteCommand("sp_BarcodeDataUpdate");
+                        Barcode.recBarcode = 0;
+                        _COUNT = _DATA_TABLE.Rows.Count;
+                        Parallel.For(0, _COUNT / 100 + 1, i =>
+                        {
+                            Barcode b = new Barcode(i);
+                            b.Insert();
+                        });
+                        if (_DATA_TABLE.Rows.Count > 0)
+                        {
+                            Console.WriteLine("Update successed total Record(s) = {0}\n", Barcode.recBarcode);
+                        }
+
+                    }
+                }
 
 
                 // Sync BarcodeStock
@@ -606,6 +641,7 @@ namespace DataSync
                 {
                     _SHOP = _DATATABLE.Rows[r]["ShopId"].ToString();
                     _CUS_NO = _DATATABLE.Rows[r]["ShopCustomer"].ToString();
+
                     _CLOUD_TABLE = tableClient.GetTableReference("BarcodeStock");
                     _CLOUD_TABLE.CreateIfNotExists();
 

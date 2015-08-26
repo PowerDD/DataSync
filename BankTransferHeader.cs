@@ -29,11 +29,24 @@ namespace DataSync
                 {
                     try
                     {
-                        BankTransferHeaderEntity data = new BankTransferHeaderEntity("88888888", Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim().PadLeft(6, '0'));
-                        data.BankAccount = Program._DATA_TABLE.Rows[i]["BankAccountID"].ToString().Trim();
-                        data.TransferMoney = double.Parse(Program._DATA_TABLE.Rows[i]["TransferMoney"].ToString().ToLower().Trim());
-                        try { data.ReceiveDate = Convert.ToDateTime(Program._DATA_TABLE.Rows[i]["ReceiveDate"].ToString()); }
+                        DynamicTableEntity data = new DynamicTableEntity();
+                        data.PartitionKey = "88888888";
+                        data.RowKey = Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim().PadLeft(6, '0');
+                        Dictionary<string, EntityProperty> properties = new Dictionary<string, EntityProperty>();
+
+                        properties.Add("BankAccount", new EntityProperty(Program._DATA_TABLE.Rows[i]["BankAccountID"].ToString().Trim()));
+                        properties.Add("TransferMoney", new EntityProperty(double.Parse(Program._DATA_TABLE.Rows[i]["TransferMoney"].ToString().ToLower().Trim())));
+                        try
+                        {
+                            properties.Add("ReceiveDate", new EntityProperty(Convert.ToDateTime(Program._DATA_TABLE.Rows[i]["ReceiveDate"].ToString())));
+                        }
                         catch { }
+
+                        //BankTransferHeaderEntity data = new BankTransferHeaderEntity("88888888", Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim().PadLeft(6, '0'));
+                        //data.BankAccount = Program._DATA_TABLE.Rows[i]["BankAccountID"].ToString().Trim();
+                        //data.TransferMoney = double.Parse(Program._DATA_TABLE.Rows[i]["TransferMoney"].ToString().ToLower().Trim());
+                        //try { data.ReceiveDate = Convert.ToDateTime(Program._DATA_TABLE.Rows[i]["ReceiveDate"].ToString()); }
+                        //catch { }
                         batchOperation.InsertOrMerge(data);
                         recTransferH++;
                         TransferH[Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim()] = true;

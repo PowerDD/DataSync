@@ -30,12 +30,37 @@ namespace DataSync
                 {
                     try
                     {
-                        CategoryEntity data = new CategoryEntity("88888888", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim().PadLeft(5, '0'));
-                        data.Name = Program._DATA_TABLE.Rows[i]["Name"].ToString();
-                        data.Url = Program._DATA_TABLE.Rows[i]["Name"].ToString().ToLower().Replace("/", "-").Replace(" ", "_").Replace("_-_", "-");
-                        data.Active = true;
-                        data.Priority = 99;
-                        data.ProductCount = int.Parse(Program._DATA_TABLE.Rows[i]["cnt"].ToString());
+                        DynamicTableEntity data = new DynamicTableEntity();
+                        data.PartitionKey = "88888888";
+                        data.RowKey = Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim().PadLeft(5, '0');
+                        Dictionary<string, EntityProperty> properties = new Dictionary<string, EntityProperty>();
+                        properties.Add("Name", new EntityProperty(Program._DATA_TABLE.Rows[i]["Name"].ToString()));
+                        properties.Add("Url", new EntityProperty(Program._DATA_TABLE.Rows[i]["Name"].ToString().ToLower().Replace("/", "-").Replace(" ", "_").Replace("_-_", "-")));
+                        properties.Add("Active", new EntityProperty(true));
+                        properties.Add("Priority", new EntityProperty(99));
+
+                        if (Program._DATA_TABLE.Rows[i]["cnt"] == null)
+                        {
+                            properties.Add("ProductCount", new EntityProperty(0));
+                        }
+                        else
+                        {
+                            properties.Add("ProductCount", new EntityProperty(int.Parse(Program._DATA_TABLE.Rows[i]["cnt"].ToString())));
+                        }
+
+                        //CategoryEntity data = new CategoryEntity("88888888", Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim().PadLeft(5, '0'));
+                        //data.Name = Program._DATA_TABLE.Rows[i]["Name"].ToString();
+                        //data.Url = Program._DATA_TABLE.Rows[i]["Name"].ToString().ToLower().Replace("/", "-").Replace(" ", "_").Replace("_-_", "-");
+                        //data.Active = true;
+                        //data.Priority = 99;
+                        //if (Program._DATA_TABLE.Rows[i]["cnt"] == null)
+                        //{
+                        //    data.ProductCount = 0;
+                        //}
+                        //else
+                        //{
+                        //    data.ProductCount = int.Parse(Program._DATA_TABLE.Rows[i]["cnt"].ToString());
+                        //}
                         batchOperation.InsertOrMerge(data);
                         recCategory++;
                         category[Program._DATA_TABLE.Rows[i]["RowKey"].ToString().Trim()] = true;

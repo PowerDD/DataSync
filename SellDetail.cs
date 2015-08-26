@@ -30,9 +30,17 @@ namespace DataSync
                 {
                     try
                     {
-                        SellDetailEntity data = new SellDetailEntity("88888888", Rowkey);
-                        data.SellPrice = double.Parse(Program._DATA_TABLE.Rows[i]["SellPrice"].ToString().Trim());
-                        data.Quantity = double.Parse(Program._DATA_TABLE.Rows[i]["Quantity"].ToString().Trim());
+                        DynamicTableEntity data = new DynamicTableEntity();
+                        data.PartitionKey = "88888888";
+                        data.RowKey = Rowkey;
+                        Dictionary<string, EntityProperty> properties = new Dictionary<string, EntityProperty>();
+
+                        properties.Add("SellPrice", new EntityProperty(double.Parse(Program._DATA_TABLE.Rows[i]["SellPrice"].ToString().Trim())));
+                        properties.Add("Quantity", new EntityProperty(double.Parse(Program._DATA_TABLE.Rows[i]["Quantity"].ToString().Trim())));
+                      
+                        //SellDetailEntity data = new SellDetailEntity("88888888", Rowkey);
+                        //data.SellPrice = double.Parse(Program._DATA_TABLE.Rows[i]["SellPrice"].ToString().Trim());
+                        //data.Quantity = double.Parse(Program._DATA_TABLE.Rows[i]["Quantity"].ToString().Trim());
                         batchOperation.InsertOrMerge(data);
                         recSellD++;
                         sellD[Rowkey] = true;

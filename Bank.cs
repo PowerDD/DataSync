@@ -29,12 +29,23 @@ namespace DataSync
                 {
                     try
                     {
-                        BankEntity data = new BankEntity("88888888", Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim().PadLeft(6, '0'));
-                        data.Bank = Program._DATA_TABLE.Rows[i]["Bank"].ToString().Trim();
-                        data.BranchName = Program._DATA_TABLE.Rows[i]["BranchName"].ToString().ToLower().Trim();
-                        data.AccountNumber = Program._DATA_TABLE.Rows[i]["AccountNumber"].ToString().Trim();
-                        data.AccountName = Program._DATA_TABLE.Rows[i]["AccountName"].ToString().Trim();
-                        data.AccountType = int.Parse(Program._DATA_TABLE.Rows[i]["AccountType"].ToString().Trim());
+                        DynamicTableEntity data = new DynamicTableEntity();
+                        data.PartitionKey = "88888888";
+                        data.RowKey = Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim().PadLeft(6, '0');
+                        Dictionary<string, EntityProperty> properties = new Dictionary<string, EntityProperty>();
+
+                        properties.Add("Bank", new EntityProperty(Program._DATA_TABLE.Rows[i]["Bank"].ToString().Trim()));
+                        properties.Add("BranchName", new EntityProperty(Program._DATA_TABLE.Rows[i]["BranchName"].ToString().ToLower().Trim()));
+                        properties.Add("AccountNumber", new EntityProperty(Program._DATA_TABLE.Rows[i]["AccountNumber"].ToString().Trim()));
+                        properties.Add("AccountName", new EntityProperty(Program._DATA_TABLE.Rows[i]["AccountName"].ToString().Trim()));
+                        properties.Add("AccountType", new EntityProperty(int.Parse(Program._DATA_TABLE.Rows[i]["AccountType"].ToString().Trim())));
+
+                        //BankEntity data = new BankEntity("88888888", Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim().PadLeft(6, '0'));
+                        //data.Bank = Program._DATA_TABLE.Rows[i]["Bank"].ToString().Trim();
+                        //data.BranchName = Program._DATA_TABLE.Rows[i]["BranchName"].ToString().ToLower().Trim();
+                        //data.AccountNumber = Program._DATA_TABLE.Rows[i]["AccountNumber"].ToString().Trim();
+                        //data.AccountName = Program._DATA_TABLE.Rows[i]["AccountName"].ToString().Trim();
+                        //data.AccountType = int.Parse(Program._DATA_TABLE.Rows[i]["AccountType"].ToString().Trim());
                         batchOperation.InsertOrMerge(data);
                         recBank++;
                         bank[Program._DATA_TABLE.Rows[i]["ID"].ToString().Trim()] = true;
